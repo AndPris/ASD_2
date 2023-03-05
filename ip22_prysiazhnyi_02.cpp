@@ -8,11 +8,14 @@ void delete_matrix(int**, int);
 
 int** take_input(string, int&, int&);
 
-//---------Find index of the element----------
-int find(int*, int, int, int);
+//-------Swap two columns of the matrix
+void swap_cols(int**, int, int, int);
+
+//------Copy base matrix without 0 column------
+void copy_matrix(int**, int**, int, int);
 
 //------Create matrix UxM with preferences relatively to certain user-----
-int** create_relative_preferences(int**, int, int, int);
+int** make_relative_preferences(int**, int, int, int);
 
 int sort_and_count_inversion(int*, int, int);
 int merge_and_count_split_inversion(int*, int, int, int);
@@ -24,55 +27,50 @@ void sort_inversions_matrix(int**, int);
 void create_output(string, int**, int, int);
 
 int main(int argc, char* argv[]) {
-    const string input_name = "input_5_5.txt";
+    const string input_name = "input_10_5.txt";
     const string output_name = "ip22_prysiazhnyi_02_output.txt";
 
-    int user_number = 5;//stoi(argv[2], nullptr, 10);
+    int user_number = 6;//stoi(argv[2], nullptr, 10);
     int amount_of_users, amount_of_films;
     int **user_preferences;
-    int **relative_user_preferences;
+    int **relative_users_preferences;
     int **inversion_matrix;
 
     user_preferences = take_input(input_name, amount_of_users, amount_of_films);
-    for(int i = 0; i < amount_of_users; i++) {
-        for(int j = 0; j < amount_of_films+1; j++) {
-            cout.width(4);
-            cout<<user_preferences[i][j];
-        }
-        cout<<endl;
-    }
-    cout<<"--------------------------------------"<<endl;
-    relative_user_preferences = create_relative_preferences(user_preferences, amount_of_users, amount_of_films, user_number);
-    for(int i = 0; i < amount_of_users; i++) {
-        for(int j = 0; j < amount_of_films; j++) {
-            cout.width(4);
-            cout<<relative_user_preferences[i][j];
-        }
-        cout<<endl;
-    }
-    cout<<"--------------------------------------"<<endl;
-    inversion_matrix = create_inversions_matrix(relative_user_preferences, amount_of_users, amount_of_films, user_number);
-    for(int i = 0; i < 2; i++) {
-        for(int j = 0; j < amount_of_users-1; j++) {
-            cout.width(4);
-            cout<<inversion_matrix[i][j];
-        }
-        cout<<endl;
-    }
+//    for(int i = 0; i < amount_of_users; i++) {
+//        for(int j = 0; j < amount_of_films+1; j++) {
+//            cout.width(4);
+//            cout<<user_preferences[i][j];
+//        }
+//        cout<<endl;
+//    }
+//    cout<<"--------------------------------------"<<endl;
+    relative_users_preferences = make_relative_preferences(user_preferences, amount_of_users, amount_of_films, user_number);
+//    for(int i = 0; i < amount_of_users; i++) {
+//        for(int j = 0; j < amount_of_films; j++) {
+//            cout.width(4);
+//            cout<<relative_users_preferences[i][j];
+//        }
+//        cout<<endl;
+//    }
+//    cout<<"--------------------------------------"<<endl;
+    inversion_matrix = create_inversions_matrix(relative_users_preferences, amount_of_users, amount_of_films, user_number);
+//    for(int i = 0; i < 2; i++) {
+//        for(int j = 0; j < amount_of_users-1; j++) {
+//            cout.width(4);
+//            cout<<inversion_matrix[i][j];
+//        }
+//        cout<<endl;
+//    }
     sort_inversions_matrix(inversion_matrix, amount_of_users-1);
 
     create_output(output_name, inversion_matrix, amount_of_users-1, user_number);
 
 
     delete_matrix(user_preferences, amount_of_users);
-    delete_matrix(relative_user_preferences, amount_of_users);
+    delete_matrix(relative_users_preferences, amount_of_users);
     delete_matrix(inversion_matrix, 2);
     system("pause");
-//    int a[] = {5, 2, 4, 3, 1};
-//    cout<<sort_and_count_inversion(a, 0, 5)<<endl;
-//    for(int i = 0; i < 5; i++) {
-//        cout<<a[i]<<'\t';
-//    }
     return 0;
 }
 
@@ -111,26 +109,37 @@ int** take_input(string file_path, int&U, int&M) {
     return matrix;
 }
 
-int find(int* array, int element, int begin, int end) {
-    for(int i = begin; i < end; i++) {
-        if(array[i] == element) {
-            return i;
-        }
+void swap_cols(int** matrix, int col1, int col2, int rows) {
+    int temp;
+    for(int i = 0; i < rows; i++) {
+        temp = matrix[i][col1];
+        matrix[i][col1] = matrix[i][col2];
+        matrix[i][col2] = temp;
     }
 
-    return -1;
 }
 
-int** create_relative_preferences(int** matrix, int U, int M, int user) {
-    int **relative_matrix = create_matrix(U, M);
+void copy_matrix(int** dest, int** from, int rows, int cols) {
+    for(int i = 0; i < rows; i++) {
+        for(int j = 1; j <= cols; j++) {
+            dest[i][j-1] = from[i][j];
+        }
+    }
+}
 
-    for(int i = 0; i < U; i++) {
+int** make_relative_preferences(int** matrix, int U, int M, int user) {
+    int **relative_preferences = create_matrix(U, M);
+    copy_matrix(relative_preferences, matrix, U, M);
+
+    for(int i = 0; i < M; i++) {
         for(int j = 0; j < M; j++) {
-            relative_matrix[i][j] = find(matrix[i], matrix[user-1][j+1], 1, M+1);
+            if(relative_preferences[user-1][i] < relative_preferences[user-1][j]) {
+                swap_cols(relative_preferences, i, j, U);
+            }
         }
     }
 
-    return relative_matrix;
+    return relative_preferences;
 }
 
 int sort_and_count_inversion(int *array, int left, int right) {
