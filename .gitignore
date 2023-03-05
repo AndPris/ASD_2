@@ -1,2 +1,3 @@
 # Project exclude paths
 .idea/workspace.xml
+cmake-build-debug/ip22_prysiazhnyi_02_output.txt
